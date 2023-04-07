@@ -180,6 +180,18 @@
       }
     });
   </script>
+  <script>
+    window.__onGCastApiAvailable = function(isAvailable) {
+      if (isAvailable) {
+        cast.framework.CastContext.getInstance().setOptions({
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.PAGE_SCOPED,
+          receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+          resumeSavedSession: false,
+        });
+      }
+    };
+  </script>
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 </head>
 <body>
   <div id="setup">
