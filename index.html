@@ -9,20 +9,26 @@
     }
   </style>
   <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://accounts.google.com/gsi/client"></script>
   <script>
-    function authenticate() {
-      return gapi.auth2.getAuthInstance()
-        .signIn({scope: "https://www.googleapis.com/auth/photoslibrary.readonly"})
-        .then(
-          function() { console.log("Sign-in successful"); },
-          function(err) { console.error("Error signing in", err); }
-        );
+    var accessToken;
+
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: '857477745476-5e96rcldibfbaj5ri6u84t6l136at0bo.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/photoslibrary.readonly',
+      ux_mode: 'popup',
+      callback: (response) => { accessToken = response.access_token; }
+    });
+
+    function start() {
+      return gapi.load('client', loadClient);
     }
 
     function loadClient() {
+      gapi.client.setToken({access_token: accessToken});
       return gapi.client.load("https://content.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest")
         .then(
-          function() { console.log("GAPI client loaded for API"); },
+          displayAlbums,
           function(err) { console.error("Error loading GAPI client for API", err); }
         );
     }
@@ -75,14 +81,11 @@
       const albumId = document.getElementById('album-selector').value;
       displayMediaItems(albumId);
     }
-
-    gapi.load("client:auth2", function() {
-      gapi.auth2.init({client_id: "857477745476-5e96rcldibfbaj5ri6u84t6l136at0bo.apps.googleusercontent.com"});
-    });
   </script>
 </head>
 <body>
-  <button onclick="authenticate().then(loadClient)">Authorize and Load</button>
+  <button onclick='client.requestAccessToken()'>Log in</button>
+  <button onclick='start()'>Start</button>
   <h2>Select an Album:</h2>
   <select id="album-selector" onchange="onAlbumChange()"></select>
   <div id="media-container"></div>
