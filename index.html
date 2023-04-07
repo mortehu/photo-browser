@@ -38,6 +38,8 @@
   <script src="https://accounts.google.com/gsi/client"></script>
   <script>
     var accessToken = localStorage.getItem('accessToken');
+    var albumId;
+    var pageToken;
 
     const client = google.accounts.oauth2.initTokenClient({
       client_id: '857477745476-5e96rcldibfbaj5ri6u84t6l136at0bo.apps.googleusercontent.com',
@@ -78,7 +80,13 @@
               const a = document.createElement('a');
               a.href = '#';
               a.textContent = album.title;
-              a.onclick = () => displayMediaItems(album.id);
+              a.onclick = () => {
+                albumId = album.id;
+                pageToken = null;
+                const container = document.getElementById('media-container');
+                container.innerHTML = '';
+                displayMediaItems();
+              };
               li.appendChild(a);
               ul.appendChild(li);
             });
@@ -87,17 +95,23 @@
         );
     }
 
-    function displayMediaItems(albumId) {
-      return gapi.client.photoslibrary.mediaItems.search({albumId: albumId})
+    function displayMediaItems() {
+      const query = {albumId: albumId};
+      if (pageToken) {
+        query.pageToken = pageToken;
+        pageToken = null;
+      }
+
+      return gapi.client.photoslibrary.mediaItems.search(query)
         .then(
           function(response) {
+            pageToken = response.result.nextPageToken;
             const setup = document.getElementById('setup');
             setup.style.display = 'none';
 
             const width = window.innerWidth;
             const mediaItems = response.result.mediaItems;
             const container = document.getElementById('media-container');
-            container.innerHTML = '';
 
             mediaItems.forEach(item => {
               if (item.mimeType.startsWith("image/")) {
@@ -152,6 +166,14 @@
 
     window.addEventListener('DOMContentLoaded', (event) => {
       start();
+    });
+
+    window.addEventListener('scroll', () => {
+      if (2 * window.innerHeight + window.scrollY >= document.documentElement.scrollHeight) {
+        if (albumId && pageToken) {
+          displayMediaItems();
+        }
+      }
     });
   </script>
 </head>
