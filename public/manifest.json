@@ -1,0 +1,21 @@
+{
+  "name": "Google Photos Album Viewer",
+  "short_name": "Album Viewer",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "background_color": "#333333",
+  "display": "standalone",
+  "icons": [
+    {
+      "sizes": "256x256",
+      "src": "/icon-256x256.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "256x256",
+      "src": "/icon-256x256.png",
+      "type": "image/png"
+    }
+  ]
+}
