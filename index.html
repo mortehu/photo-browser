@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Photos Album Viewer</title>
+  <style>
+    img, video {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    function authenticate() {
+      return gapi.auth2.getAuthInstance()
+        .signIn({scope: "https://www.googleapis.com/auth/photoslibrary.readonly"})
+        .then(
+          function() { console.log("Sign-in successful"); },
+          function(err) { console.error("Error signing in", err); }
+        );
+    }
+
+    function loadClient() {
+      return gapi.client.load("https://content.googleapis.com/discovery/v1/apis/photoslibrary/v1/rest")
+        .then(
+          function() { console.log("GAPI client loaded for API"); },
+          function(err) { console.error("Error loading GAPI client for API", err); }
+        );
+    }
+
+    function displayAlbums() {
+      return gapi.client.photoslibrary.albums.list()
+        .then(
+          function(response) {
+            const albums = response.result.albums;
+            const select = document.getElementById('album-selector');
+            select.innerHTML = '';
+
+            albums.forEach(album => {
+              const option = document.createElement('option');
+              option.value = album.id;
+              option.textContent = album.productUrl;
+              select.appendChild(option);
+            });
+          },
+          function(err) { console.error("Error getting albums", err); }
+        );
+    }
+
+    function displayMediaItems(albumId) {
+      return gapi.client.photoslibrary.mediaItems.search({albumId: albumId})
+        .then(
+          function(response) {
+            const mediaItems = response.result.mediaItems;
+            const container = document.getElementById('media-container');
+            container.innerHTML = '';
+
+            mediaItems.forEach(item => {
+              if (item.mimeType.startsWith("image/")) {
+                const img = document.createElement('img');
+                img.src = item.baseUrl;
+                container.appendChild(img);
+              } else if (item.mimeType.startsWith("video/")) {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.src = item.baseUrl;
+                container.appendChild(video);
+              }
+            });
+          },
+          function(err) { console.error("Error getting media items", err); }
+        );
+    }
+
+    function onAlbumChange() {
+      const albumId = document.getElementById('album-selector').value;
+      displayMediaItems(albumId);
+    }
+
+    gapi.load("client:auth2", function() {
+      gapi.auth2.init({client_id: "857477745476-5e96rcldibfbaj5ri6u84t6l136at0bo.apps.googleusercontent.com"});
+    });
+  </script>
+</head>
+<body>
+  <button onclick="authenticate().then(loadClient)">Authorize and Load</button>
+  <h2>Select an Album:</h2>
+  <select id="album-selector" onchange="onAlbumChange()"></select>
+  <div id="media-container"></div>
+</body>
+</html>
