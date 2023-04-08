@@ -102,35 +102,57 @@
         );
     }
 
+    function removeDuplicateIds(elements) {
+      const result = [];
+      var prevId;
+      for (let i = 0; i < elements.length; i++) {
+        if (elements[i].id !== prevId) {
+          result.push(elements[i]);
+          prevId = elements[i].id;
+        }
+      }
+      return result;
+    }
+
     function displayAlbums() {
-      return gapi.client.photoslibrary.albums.list()
-        .then(
-          function(response) {
-            // If we got the list of albums we are for sure logged in.
-            document.getElementById('login-button').style.display = 'none';
+      var albums = [];
 
-            const albums = response.result.albums;
-            const ul = document.getElementById('album-list');
-            ul.innerHTML = '';
+      // List own albums
+      return gapi.client.photoslibrary.albums.list().then(function(response) {
+        albums.push(...response.result.albums);
 
-            albums.sort((a, b) => a.title.localeCompare(b.title));
+        // List shared albums
+        gapi.client.photoslibrary.sharedAlbums.list().then(function(response) {
+          albums.push(...response.result.sharedAlbums);
+          albums = albums.filter(item => item.hasOwnProperty("title"));
+          albums.sort((a, b) => a.title.localeCompare(b.title));
+          albums = removeDuplicateIds(albums);
 
-            albums.forEach(album => {
-              const li = document.createElement('div');
-              li.className = 'album';
-              li.textContent = album.title;
-              li.onclick = () => {
-                albumId = album.id;
-                pageToken = null;
-                const container = document.getElementById('media-container');
-                container.innerHTML = '';
-                displayMediaItems();
-              };
-              ul.appendChild(li);
-            });
-          },
-          function(err) { console.error("Error getting albums", err); }
-        );
+          document.getElementById('login-button').style.display = 'none';
+
+          const ul = document.getElementById('album-list');
+          ul.innerHTML = '';
+
+          albums.forEach(album => {
+            const li = document.createElement('div');
+            li.className = 'album';
+            li.textContent = album.title;
+            li.onclick = () => {
+              albumId = album.id;
+              pageToken = null;
+              const container = document.getElementById('media-container');
+              container.innerHTML = '';
+              displayMediaItems();
+            };
+            ul.appendChild(li);
+          });
+        }, function(reason) {
+          console.log('Error: ' + reason.result.error.message);
+        });
+
+      }, function(reason) {
+        console.log('Error: ' + reason.result.error.message);
+      });
     }
 
     function displayMediaItems() {
