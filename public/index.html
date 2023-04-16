@@ -187,6 +187,7 @@
                 const video = document.createElement('video');
                 video.src = item.baseUrl + "=dv";
                 video.loop = true;
+                video.poster = item.baseUrl + "=w" + width + "-no";
                 video.disableRemotePlayback = true;
                 video.addEventListener('click', () => {
                   pauseAllVideosExcept(video);
@@ -202,17 +203,7 @@
                 videoIcon.className = 'fas fa-video';
                 videoOverlay.appendChild(videoIcon);
 
-                const img = document.createElement('img');
-                img.src = item.baseUrl + "=w" + width + "-no";
-                videoWrapper.appendChild(img);
-
-                img.addEventListener('click', () => {
-                  videoWrapper.replaceChild(video, img);
-                  pauseAllVideosExcept(video);
-                  video.play();
-                });
-
-                videoWrapper.appendChild(img);
+                videoWrapper.appendChild(video);
                 videoWrapper.appendChild(videoOverlay);
                 container.appendChild(videoWrapper);
               }
